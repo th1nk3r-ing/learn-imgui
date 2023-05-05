@@ -1,4 +1,5 @@
 // dear imgui: Platform Binding for Android native app
+// Android 的后端实现, 需要 OpenGLES-3 的版本
 // This needs to be used along with the OpenGL 3 Renderer (imgui_impl_opengl3)
 
 // Implemented features:
@@ -36,7 +37,7 @@
 
 // Android data
 static double                                   g_Time = 0.0;
-static ANativeWindow*                           g_Window;
+static ANativeWindow*                           g_Window;                   // 绘制的 native 窗口
 static char                                     g_LogTag[] = "ImGuiExample";
 
 static ImGuiKey ImGui_ImplAndroid_KeyCodeToImGuiKey(int32_t key_code)
@@ -284,8 +285,10 @@ void ImGui_ImplAndroid_NewFrame()
     int display_height = window_height;
 
     io.DisplaySize = ImVec2((float)window_width, (float)window_height);
-    if (window_width > 0 && window_height > 0)
-        io.DisplayFramebufferScale = ImVec2((float)display_width / window_width, (float)display_height / window_height);
+    if (window_width > 0 && window_height > 0) {
+        // io.DisplayFramebufferScale = ImVec2((float)display_width / window_width, (float)display_height / window_height);
+        io.DisplayFramebufferScale = ImVec2(1, 1);
+    }
 
     // Setup time step
     struct timespec current_timespec;

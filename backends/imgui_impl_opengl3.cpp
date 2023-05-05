@@ -209,12 +209,12 @@ struct ImGui_ImplOpenGL3_Data
     GLint           GlProfileMask;
     GLuint          FontTexture;
     GLuint          ShaderHandle;
-    GLint           AttribLocationTex;       // Uniforms location
-    GLint           AttribLocationProjMtx;
-    GLuint          AttribLocationVtxPos;    // Vertex attributes location
-    GLuint          AttribLocationVtxUV;
+    GLint           AttribLocationTex;       // Uniforms location   纹理
+    GLint           AttribLocationProjMtx;      // 平移变换矩阵 ??
+    GLuint          AttribLocationVtxPos;    // Vertex attributes location      顶点数据(绘制的图案)
+    GLuint          AttribLocationVtxUV;        // 纹理坐标
     GLuint          AttribLocationVtxColor;
-    unsigned int    VboHandle, ElementsHandle;
+    unsigned int    VboHandle, ElementsHandle;      // 使用了 VBO 和 EBO
     GLsizeiptr      VertexBufferSize;
     GLsizeiptr      IndexBufferSize;
     bool            HasClipOrigin;
@@ -725,7 +725,7 @@ bool    ImGui_ImplOpenGL3_CreateDeviceObjects()
 
     // Backup GL state
     GLint last_texture, last_array_buffer;
-    glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);    // 备份之前的纹理绑定状态
     glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
 #ifdef IMGUI_IMPL_OPENGL_USE_VERTEX_ARRAY
     GLint last_vertex_array;
@@ -898,7 +898,7 @@ bool    ImGui_ImplOpenGL3_CreateDeviceObjects()
     ImGui_ImplOpenGL3_CreateFontsTexture();
 
     // Restore modified GL state
-    glBindTexture(GL_TEXTURE_2D, last_texture);
+    glBindTexture(GL_TEXTURE_2D, last_texture);     // 回复之前的纹理绑定状态
     glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer);
 #ifdef IMGUI_IMPL_OPENGL_USE_VERTEX_ARRAY
     glBindVertexArray(last_vertex_array);

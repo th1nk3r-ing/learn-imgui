@@ -11,6 +11,8 @@
 #include <GLES3/gl3.h>
 #include <string>
 
+
+
 // Data
 static EGLDisplay           g_EglDisplay = EGL_NO_DISPLAY;
 static EGLSurface           g_EglSurface = EGL_NO_SURFACE;
@@ -47,11 +49,15 @@ static void handleAppCmd(struct android_app* app, int32_t appCmd)
     }
 }
 
+// 使用 NativeActivity 的原因是为了更好的在 native 层分发各种 Input 事件
 static int32_t handleInputEvent(struct android_app* app, AInputEvent* inputEvent)
 {
     return ImGui_ImplAndroid_HandleInputEvent(inputEvent);
 }
 
+// native-Activity 的入口
+//      [native-activity](https://developer.android.google.cn/ndk/samples/sample_na?hl=zh-cn)
+// android_native_app_glue() 函数会调用 android_main()
 void android_main(struct android_app* app)
 {
     app->onAppCmd = handleAppCmd;
@@ -86,13 +92,14 @@ void android_main(struct android_app* app)
     }
 }
 
+// 初始化渲染
 void Init(struct android_app* app)
 {
     if (g_Initialized)
         return;
 
     g_App = app;
-    ANativeWindow_acquire(g_App->window);
+    ANativeWindow_acquire(g_App->window);   // 增加 window 的引用, 避免回收
 
     // Initialize EGL
     // This is mostly boilerplate code for EGL...
@@ -118,7 +125,7 @@ void Init(struct android_app* app)
         eglGetConfigAttrib(g_EglDisplay, egl_config, EGL_NATIVE_VISUAL_ID, &egl_format);
         ANativeWindow_setBuffersGeometry(g_App->window, 0, 0, egl_format);
 
-        const EGLint egl_context_attributes[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
+        const EGLint egl_context_attributes[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };    // 注意是 EGL 3
         g_EglContext = eglCreateContext(g_EglDisplay, egl_config, EGL_NO_CONTEXT, egl_context_attributes);
 
         if (g_EglContext == EGL_NO_CONTEXT)
@@ -142,7 +149,7 @@ void Init(struct android_app* app)
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();
 
-    // Setup Platform/Renderer backends
+    // Setup Platform/Renderer backends 调用后端函数进行初始化
     ImGui_ImplAndroid_Init(g_App->window);
     ImGui_ImplOpenGL3_Init("#version 300 es");
 
@@ -181,11 +188,12 @@ void Init(struct android_app* app)
 
     // Arbitrary scale-up
     // FIXME: Put some effort into DPI awareness
-    ImGui::GetStyle().ScaleAllSizes(3.0f);
+    ImGui::GetStyle().ScaleAllSizes(4.0f);
 
     g_Initialized = true;
 }
 
+// 绘制新的一帧
 void MainLoopStep()
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -256,7 +264,7 @@ void MainLoopStep()
     glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    eglSwapBuffers(g_EglDisplay, g_EglSurface);
+    eglSwapBuffers(g_EglDisplay, g_EglSurface);     // 绘制到了 Activity 对应的 window 上了
 }
 
 void Shutdown()
